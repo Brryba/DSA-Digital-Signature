@@ -1,5 +1,7 @@
 package ti_lab4.utils;
 
+import ti_lab4.dto.DsaParams;
+
 public class InputValidator {
     private boolean isPrime(int n) {
         if (n <= 1) return false;
@@ -13,7 +15,7 @@ public class InputValidator {
         return true;
     }
 
-    private void validateQ(int q) throws IllegalArgumentException {
+    public void validateQ(int q) throws IllegalArgumentException {
         if (!isPrime(q)) {
             throw new IllegalArgumentException("Число q не простое");
         }
@@ -46,12 +48,15 @@ public class InputValidator {
         }
     }
 
-    public void validateAll(int q, int p, int h, int x, int k) throws IllegalArgumentException {
+    public void validateAll(DsaParams dsaParams) throws IllegalArgumentException {
+        int q = dsaParams.q(), p = dsaParams.p(), h = dsaParams.h(), x = dsaParams.x(), k = dsaParams.k();
         validateQ(q);
         validateP(q, p);
         validateH(p, h);
         validateX(q, x);
-        validateK(q, k);
+        if (dsaParams.kRequired()) {
+            validateK(q, k);
+        }
     }
 
     public void validateRAndS(int r, int s) throws IllegalArgumentException {

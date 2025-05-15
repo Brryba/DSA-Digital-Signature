@@ -21,6 +21,7 @@ public class FileUtil {
         fileChooser.setTitle("Open File");
         File file = new File("D:\\bsuir\\Ти отчеты\\lab4\\test.txt");
         //File file = fileChooser.showOpenDialog(null);
+        //TODO: ADD CHOOSER
         if (file == null) return null;
 
         try (InputStream is = new FileInputStream(file)) {

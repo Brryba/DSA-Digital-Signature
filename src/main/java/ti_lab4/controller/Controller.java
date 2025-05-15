@@ -2,37 +2,55 @@ package ti_lab4.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.stage.FileChooser;
 import ti_lab4.dsa_digital_signature.DSASignatureMaker;
+import ti_lab4.dto.DsaParams;
 import ti_lab4.dto.InputDto;
 import ti_lab4.utils.FileUtil;
 import ti_lab4.utils.InputValidator;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Controller {
-    @FXML private TextField qField;
-    @FXML private TextField pField;
-    @FXML private TextField hField;
-    @FXML private TextField xField;
-    @FXML private TextField kField;
+    @FXML
+    private TextField qField;
+    @FXML
+    private TextField pField;
+    @FXML
+    private TextField hField;
+    @FXML
+    private TextField xField;
+    @FXML
+    private TextField kField;
 
-    @FXML private TextField gField;
-    @FXML private TextField yField;
-    @FXML private TextField rField;
-    @FXML private TextField sField;
-    @FXML private TextField hashField;
-    @FXML private TextField fileSignature;
-    @FXML private TextArea textField;
-    @FXML private TextArea hashBytesArea;
+    @FXML
+    private TextField gField;
+    @FXML
+    private TextField yField;
+    @FXML
+    private TextField rField;
+    @FXML
+    private TextField sField;
+    @FXML
+    private TextField hashField;
+    @FXML
+    private TextField fileSignature;
+    @FXML
+    private TextArea textField;
+    @FXML
+    private TextArea hashBytesArea;
+    @FXML
+    private TextArea verificationResultArea;
 
-    @FXML private Button calculateBtn;
-    @FXML private Button verifyBtn;
-    @FXML private MenuItem openMenuItem;
-    @FXML private MenuItem saveMenuItem;
+    @FXML
+    private Button calculateBtn;
+    @FXML
+    private Button verifyBtn;
+    @FXML
+    private MenuItem openMenuItem;
+    @FXML
+    private MenuItem saveMenuItem;
 
     private final InputValidator validator = new InputValidator();
     private final DSASignatureMaker dsaMaker = new DSASignatureMaker();
@@ -42,45 +60,50 @@ public class Controller {
 
     @FXML
     private void initialize() {
-        calculateBtn.setOnAction(event -> handleCalculate());
-        verifyBtn.setOnAction(event -> handleVerify());
-        openMenuItem.setOnAction(event -> handleOpen());
-        saveMenuItem.setOnAction(event -> handleSave());
+        calculateBtn.setOnAction(_ -> handleCalculate());
+        openMenuItem.setOnAction(_ -> handleOpen());
+        saveMenuItem.setOnAction(_ -> handleSave());
+        verifyBtn.setOnAction(_ -> handleVerify());
+    }
+
+    private DsaParams readDsaParams(boolean kRequired) {
+        int q = Integer.parseInt(qField.getText());
+        int p = Integer.parseInt(pField.getText());
+        int h = Integer.parseInt(hField.getText());
+        int x = Integer.parseInt(xField.getText());
+        int k = kRequired ? Integer.parseInt(kField.getText()) : -1;
+        return new DsaParams(q, p, h, x, k, kRequired);
+    }
+
+    private DsaParams parseAndValidateInput(boolean kRequired) throws IllegalArgumentException {
+        DsaParams params = readDsaParams(kRequired);
+        validator.validateAll(params);
+        return params;
+    }
+
+    private SignatureResult calculateSignature(DsaParams params) {
+        int g = dsaMaker.countG(params.p(), params.q(), params.h());
+        int y = dsaMaker.countOpenKeyY(g, params.x(), params.p());
+        List<Integer> hashes = dsaMaker.countHash(fileBytes, params.q());
+        int lastHash = hashes.getLast();
+
+        int r = dsaMaker.countR(g, params.k(), params.p(), params.q());
+        int s = dsaMaker.countS(params.k(), lastHash, params.x(), r, params.q());
+
+        validator.validateRAndS(r, s);
+        return new SignatureResult(g, y, hashes, r, s);
     }
 
     private void handleCalculate() {
-        int q, p, h, x, k;
         try {
-            q = Integer.parseInt(qField.getText());
-            p = Integer.parseInt(pField.getText());
-            h = Integer.parseInt(hField.getText());
-            x = Integer.parseInt(xField.getText());
-            k = Integer.parseInt(kField.getText());
-        } catch (NumberFormatException e) {
-            showError("Все введенные числа должны быть целыми!");
-            return;
-        }
-
-        try {
-            validator.validateAll(q, p, h, x, k);
+            DsaParams params = parseAndValidateInput(true);
             saveMenuItem.setDisable(false);
 
+            SignatureResult result = calculateSignature(params);
+            updateUI(result);
 
-            int g = dsaMaker.countG(p, q, h);
-            int y = dsaMaker.countOpenKeyY(g, x, p);
-            List<Integer> hashes = dsaMaker.countHash(fileBytes, q);
-            int lastHash = hashes.getLast();
-            this.r = dsaMaker.countR(g, k, p, q);
-            this.s = dsaMaker.countS(k, lastHash, x, r, q);
-
-
-            validator.validateRAndS(r, s);
-            gField.setText(String.valueOf(g));
-            yField.setText(String.valueOf(y));
-            hashBytesArea.setText(String.valueOf(hashes));
-            hashField.setText(String.valueOf(lastHash));
-            rField.setText(String.valueOf(r));
-            sField.setText(String.valueOf(s));
+        } catch (NumberFormatException e) {
+            showError("Все введенные числа должны быть целыми!");
         } catch (IllegalArgumentException e) {
             showError(e.getMessage());
             clearFormOutputs();
@@ -88,7 +111,56 @@ public class Controller {
     }
 
     private void handleVerify() {
-        // TODO: реализовать проверку
+        try {
+            DsaParams params = parseAndValidateInput(false);
+            int q = params.q(), p = params.p(), h = params.h(), x = params.x(), k = params.k();
+
+            int g = dsaMaker.countG(p, q, h);
+            int y = dsaMaker.countOpenKeyY(g, x, p);
+
+            List<Integer> hashes = dsaMaker.countHash(fileBytes, q);
+            int hash = hashes.getLast();
+
+            int r = fileR;
+            int s = fileS;
+
+            int w = dsaMaker.fastModularExponentiation(s, q - 2, q);          // w = s^(-1) mod q
+            int u1 = (hash * w) % q;           // u1 = h(M) * w mod q
+            int u2 = (r * w) % q;              // u2 = r * w mod q
+            int v = (dsaMaker.fastModularExponentiation(g, u1, p)
+                    * dsaMaker.fastModularExponentiation(y, u2, p)
+                    % p) % q;  // v = (g^u1 * y^u2 mod p) mod q
+
+
+            verificationResultArea.setText(
+                    "g = " + g +
+                            "\ny = " + y +
+                            "\nhash = " + hash +
+                            "\nw = " + w +
+                            "\nu1 = " + u1 +
+                            "\nu2 = " + u2 +
+                            "\nv = " + v +
+                            "\nr из файла = " + r + "\n"
+            );
+            verificationResultArea.appendText(v == r ? "Подпись ВЕРНА" : "Подпись НЕ ВЕРНА");
+
+        } catch (NumberFormatException e) {
+            showError("Ошибка: все параметры должны быть целыми числами!");
+        } catch (IllegalArgumentException e) {
+            showError(e.getMessage());
+        }
+    }
+
+    record SignatureResult(int g, int y, List<Integer> hashes, int r, int s) {
+    }
+
+    private void updateUI(SignatureResult result) {
+        gField.setText(String.valueOf(result.g()));
+        yField.setText(String.valueOf(result.y()));
+        hashBytesArea.setText(String.valueOf(result.hashes()));
+        hashField.setText(String.valueOf(result.hashes().getLast()));
+        rField.setText(String.valueOf(result.r()));
+        sField.setText(String.valueOf(result.s()));
     }
 
     private void handleOpen() {
@@ -118,7 +190,7 @@ public class Controller {
 
     private void handleSave() {
         try {
-            fileUtil.writeFile(fileBytes, r, s);
+            fileUtil.writeFile(fileBytes, Integer.parseInt(rField.getText()), Integer.parseInt(sField.getText()));
         } catch (IOException e) {
             showError(e.getMessage());
         }

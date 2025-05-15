@@ -28,23 +28,23 @@
 
             <Label text="q:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
             <TextField fx:id="qField" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="11"/>
+                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="53"/>
 
             <Label text="p:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
             <TextField fx:id="pField" GridPane.columnIndex="1" GridPane.rowIndex="2"
-                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="23"/>
+                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="107"/>
 
             <Label text="h:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
             <TextField fx:id="hField" GridPane.columnIndex="1" GridPane.rowIndex="3"
-                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="2"/>
+                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="77"/>
 
             <Label text="x:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
             <TextField fx:id="xField" GridPane.columnIndex="1" GridPane.rowIndex="4"
-                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="7"/>
+                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="52"/>
 
             <Label text="k:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
             <TextField fx:id="kField" GridPane.columnIndex="1" GridPane.rowIndex="5"
-                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="5"/>
+                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="37"/>
         </GridPane>
 
         <HBox spacing="30" alignment="CENTER" style="-fx-padding: 10;">
@@ -53,6 +53,13 @@
             <Button fx:id="verifyBtn" text="Проверить" disable="true"
                     style="-fx-pref-width: 150; -fx-pref-height: 40; -fx-font-size: 14;"/>
         </HBox>
+
+        <VBox style="-fx-padding: 10; -fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-radius: 5;">
+            <Label text="Лог результата проверки:" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+            <TextArea fx:id="verificationResultArea" editable="false"
+                      style="-fx-pref-height: 200; -fx-font-size: 14;"
+                      wrapText="true"/>
+        </VBox>
     </VBox>
 
     <!-- Правая часть - результаты и ввод/вывод -->
@@ -63,7 +70,7 @@
                 <ColumnConstraints minWidth="200" prefWidth="300"/>
             </columnConstraints>
 
-            <Label text="Результаты:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+            <Label text="Результаты подсчета подписи:" GridPane.columnIndex="0" GridPane.rowIndex="0"
                    style="-fx-font-weight: bold; -fx-font-size: 14;"/>
 
             <Label text="g:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
@@ -88,7 +95,7 @@
 
             <Label text="Байты хеша:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
             <TextArea fx:id="hashBytesArea" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6"
-                      />
+                      style="-fx-pref-height: 100;"/>
         </GridPane>
 
         <Label text="Текстовый вывод:" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
