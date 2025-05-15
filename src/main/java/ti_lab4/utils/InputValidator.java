@@ -53,4 +53,16 @@ public class InputValidator {
         validateX(q, x);
         validateK(q, k);
     }
+
+    public void validateRAndS(int r, int s) throws IllegalArgumentException {
+        if (r == 0 && s == 0) {
+            throw new IllegalArgumentException("r и s получились равным 0. Попробуйте другие числа");
+        }
+        if (r == 0) {
+            throw new IllegalArgumentException("r получилось равным 0. Попробуйте другие числа");
+        }
+        if (s == 0) {
+            throw new IllegalArgumentException("s получилось равным 0. Попробуйте другие числа");
+        }
+    }
 }

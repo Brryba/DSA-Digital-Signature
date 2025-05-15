@@ -27,6 +27,7 @@ public class Controller {
     @FXML private TextField hashField;
     @FXML private TextField fileSignature;
     @FXML private TextArea textField;
+    @FXML private TextArea hashBytesArea;
 
     @FXML private Button calculateBtn;
     @FXML private Button verifyBtn;
@@ -37,8 +38,7 @@ public class Controller {
     private final DSASignatureMaker dsaMaker = new DSASignatureMaker();
     private final FileUtil fileUtil = new FileUtil();
     private List<Byte> fileBytes = new ArrayList<>();
-    private int generatedSignature;
-    private int existingSignature;
+    private int fileS, fileR, r, s;
 
     @FXML
     private void initialize() {
@@ -63,13 +63,27 @@ public class Controller {
 
         try {
             validator.validateAll(q, p, h, x, k);
+            saveMenuItem.setDisable(false);
+
+
             int g = dsaMaker.countG(p, q, h);
-            gField.setText(String.valueOf(g));
             int y = dsaMaker.countOpenKeyY(g, x, p);
+            List<Integer> hashes = dsaMaker.countHash(fileBytes, q);
+            int lastHash = hashes.getLast();
+            this.r = dsaMaker.countR(g, k, p, q);
+            this.s = dsaMaker.countS(k, lastHash, x, r, q);
+
+
+            validator.validateRAndS(r, s);
+            gField.setText(String.valueOf(g));
             yField.setText(String.valueOf(y));
+            hashBytesArea.setText(String.valueOf(hashes));
+            hashField.setText(String.valueOf(lastHash));
+            rField.setText(String.valueOf(r));
+            sField.setText(String.valueOf(s));
         } catch (IllegalArgumentException e) {
             showError(e.getMessage());
-            return;
+            clearFormOutputs();
         }
     }
 
@@ -85,22 +99,29 @@ public class Controller {
             showError(e.getMessage());
             return;
         }
+        clearFormOutputs();
         this.fileBytes = inputDto.inputLetters();
         fileSignature.setText(inputDto.fileSignature().isPresent()
                 ? String.valueOf(inputDto.fileSignature().get())
-                : "В файле не было подписи");
+                : "В файле нет подписи или она была изменена и записана в неправильном формате");
         textField.setText(inputDto.input());
         textField.appendText("\n" + fileBytes.stream()
                 .map(aByte -> (short) (aByte & 0xFF)).toList().toString());
         verifyBtn.setDisable(inputDto.fileSignature().isEmpty());
         calculateBtn.setDisable(false);
-        System.out.println(inputDto);
+
+        if (inputDto.fileSignature().isPresent()) {
+            fileR = inputDto.fileSignature().get().r();
+            fileS = inputDto.fileSignature().get().s();
+        }
     }
 
     private void handleSave() {
-        FileChooser fileChooser = new FileChooser();
-        File file = fileChooser.showSaveDialog(null);
-        // TODO: обработка сохранения файла
+        try {
+            fileUtil.writeFile(fileBytes, r, s);
+        } catch (IOException e) {
+            showError(e.getMessage());
+        }
     }
 
     private void showError(String message) {
@@ -108,5 +129,16 @@ public class Controller {
         alert.setTitle("Error");
         alert.setHeaderText(message);
         alert.showAndWait();
+    }
+
+    private void clearFormOutputs() {
+        gField.setText("");
+        yField.setText("");
+        hashBytesArea.setText("");
+        hashField.setText("");
+        rField.setText("");
+        sField.setText("");
+        r = s = fileS = fileR = 0;
+        saveMenuItem.setDisable(true);
     }
 }

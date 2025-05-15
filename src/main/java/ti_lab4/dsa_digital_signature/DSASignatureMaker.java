@@ -1,6 +1,10 @@
 package ti_lab4.dsa_digital_signature;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DSASignatureMaker {
+    //TODO: REMOVE LAST LAB
     public int countR(int p, int q) {
         return p * q;
     }
@@ -73,5 +77,24 @@ public class DSASignatureMaker {
         return fastModularExponentiation(g, x, p);
     }
 
-    //public int countHash()
+    public List<Integer> countHash(List<Byte> numbers, int q) {
+        int H0_HASH = 100 % q;
+        List<Integer> result = new ArrayList<>(numbers.size() + 1);
+        result.add(H0_HASH);
+        int prev = H0_HASH;
+        for (int num : numbers) {
+            int cur = fastModularExponentiation(prev + num, 2, q);
+            result.add(cur);
+            prev = cur;
+        }
+        return result;
+    }
+
+    public int countR(int g, int k, int p, int q) {
+        return fastModularExponentiation(g, k, p) % q;
+    }
+
+    public int countS(int k, int hash, int x, int r, int q) {
+        return (int) (Math.pow(k, -1) * (hash + x * r) % q);
+    }
 }

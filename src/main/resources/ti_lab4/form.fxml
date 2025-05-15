@@ -88,7 +88,7 @@
 
             <Label text="Байты хеша:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
             <TextArea fx:id="hashBytesArea" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6"
-                      style="-fx-pref-height: 100; -fx-font-size: 12; -fx-font-family: monospace;"/>
+                      />
         </GridPane>
 
         <Label text="Текстовый вывод:" style="-fx-font-weight: bold; -fx-font-size: 14;"/>

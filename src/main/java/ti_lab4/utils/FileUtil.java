@@ -1,6 +1,7 @@
 package ti_lab4.utils;
 
 import javafx.stage.FileChooser;
+import ti_lab4.dto.FileSignatureDto;
 import ti_lab4.dto.InputDto;
 
 import java.io.*;
@@ -18,71 +19,75 @@ public class FileUtil {
     public InputDto readFile() throws IOException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open File");
-        //File file = fileChooser.showOpenDialog(null);
-        // TODO: Use Chooser
         File file = new File("D:\\bsuir\\Ти отчеты\\lab4\\test.txt");
+        //File file = fileChooser.showOpenDialog(null);
+        if (file == null) return null;
 
-        if (file != null) {
-            try (InputStream is = new FileInputStream(file);
-                 InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
-                 BufferedReader reader = new BufferedReader(isr)) {
+        try (InputStream is = new FileInputStream(file)) {
+            byte[] allBytes = is.readAllBytes();
+            String content = new String(allBytes, StandardCharsets.UTF_8);
 
-                String contentAsString = reader.lines().collect(Collectors.joining("\n"));
-                int signatureIndex = contentAsString.lastIndexOf(SIGNATURE_LABEL);
-                List<Byte> dataBytes;
-                Optional<Integer> signature = Optional.empty();
-                String input;
+            int sigPos = content.lastIndexOf(SIGNATURE_LABEL);
 
-                if (signatureIndex != -1) {
-                    input = contentAsString.substring(0, signatureIndex);
-                    byte[] textBytes = input.getBytes(StandardCharsets.UTF_8);
-                    dataBytes = IntStream.range(0, textBytes.length)
-                            .mapToObj(i -> textBytes[i])
-                            .collect(Collectors.toList());
-                    String afterSignature = contentAsString.substring(signatureIndex + SIGNATURE_LABEL.length()).trim();
-                    try {
-                        if (!afterSignature.isEmpty()) {
-                            String digits = afterSignature.replaceAll("\\D+", "");
-                            if (!digits.isEmpty()) {
-                                signature = Optional.of(Integer.parseInt(digits));
-                            }
-                        }
-                    } catch (NumberFormatException _) {
-                    }
-                } else {
-                    input = contentAsString;
-                    byte[] allBytes = contentAsString.getBytes(StandardCharsets.UTF_8);
-                    dataBytes = IntStream.range(0, allBytes.length)
-                            .mapToObj(i -> allBytes[i])
-                            .collect(Collectors.toList());
+            String input;
+            List<Byte> dataBytes = new ArrayList<>();
+            Optional<FileSignatureDto> signature = Optional.empty();
+
+            if (sigPos != -1) {
+                input = content.substring(0, sigPos);
+
+                byte[] textBytes = input.getBytes(StandardCharsets.UTF_8);
+                for (byte b : textBytes) {
+                    dataBytes.add(b);
                 }
 
-                return new InputDto(input, dataBytes, signature);
+                String sigPart = content.substring(sigPos + SIGNATURE_LABEL.length()).trim();
+                signature = parseSignature(sigPart);
+            } else {
+                input = content;
+                for (byte b : allBytes) {
+                    dataBytes.add(b);
+                }
             }
+
+            return new InputDto(input, dataBytes, signature);
         }
-        return null;
     }
 
-    public void writeFile(List<Short> plainBytesArray, boolean isEncoding) throws IOException {
+    private Optional<FileSignatureDto> parseSignature(String sigStr) {
+        String[] parts = sigStr.split("\\s+");
+        if (parts.length < 2) return Optional.empty();
+
+        try {
+            return Optional.of(new FileSignatureDto(
+                    Integer.parseInt(parts[0]),
+                    Integer.parseInt(parts[1])
+            ));
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
+    }
+
+    public void writeFile(List<Byte> plainBytesArray, int r, int s) throws IOException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save File");
-        fileChooser.getExtensionFilters().addAll();
-        File file = fileChooser.showSaveDialog(null);
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        //File file = fileChooser.showSaveDialog(null);
+        File file = new File("D:\\bsuir\\Ти отчеты\\lab4\\out.txt"); // для тестирования
+
         if (file != null) {
-            try (OutputStream os = new FileOutputStream(file)) {
-                if (isEncoding) {
-                    for (Short b : plainBytesArray) {
-                        os.write(b >> 8);
-                        os.write(b);
-                    }
-                } else {
-                    List<Byte> bytes = plainBytesArray.stream().
-                            map(Short::byteValue)
-                            .toList();
-                    for (Byte b : bytes) {
-                        os.write(b);
-                    }
-                }
+            byte[] bytes = new byte[plainBytesArray.size()];
+            for (int i = 0; i < plainBytesArray.size(); i++) {
+                bytes[i] = plainBytesArray.get(i);
+            }
+
+            String signatureLine = String.format("%s %d %d", SIGNATURE_LABEL, r, s);
+
+            try (OutputStream os = new FileOutputStream(file);
+                 Writer writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
+                writer.write(new String(bytes, StandardCharsets.UTF_8));
+                writer.write(System.lineSeparator());
+                writer.write(signatureLine);
             }
         }
     }
