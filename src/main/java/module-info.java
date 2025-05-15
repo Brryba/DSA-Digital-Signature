@@ -10,5 +10,6 @@ module lab_four_ti {
     exports ti_lab4.dsa_digital_signature;
     opens ti_lab4.dsa_digital_signature to javafx.fxml;
     exports ti_lab4.utils;
+    exports ti_lab4.dto;
     opens ti_lab4.utils to javafx.fxml;
 }

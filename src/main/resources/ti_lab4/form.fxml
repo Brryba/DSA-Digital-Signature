@@ -4,84 +4,98 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1"
+<HBox xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="ti_lab4.controller.Controller" spacing="20"
       style="-fx-padding: 20;">
-    <MenuBar>
-        <Menu text="Файл">
-            <MenuItem fx:id="openMenuItem" text="Открыть"/>
-            <MenuItem fx:id="saveMenuItem" text="Сохранить"/>
-        </Menu>
-    </MenuBar>
 
-    <GridPane hgap="15" vgap="15" style="-fx-padding: 10;">
-        <columnConstraints>
-            <ColumnConstraints minWidth="100" prefWidth="150"/>
-            <ColumnConstraints minWidth="200" prefWidth="300"/>
-        </columnConstraints>
+    <!-- Левая часть - параметры и управление -->
+    <VBox spacing="20">
+        <MenuBar>
+            <Menu text="Файл">
+                <MenuItem fx:id="openMenuItem" text="Открыть"/>
+                <MenuItem fx:id="saveMenuItem" text="Сохранить"/>
+            </Menu>
+        </MenuBar>
 
-        <Label text="Параметры подписи:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-               style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+        <GridPane hgap="15" vgap="15" style="-fx-padding: 10;">
+            <columnConstraints>
+                <ColumnConstraints minWidth="100" prefWidth="150"/>
+                <ColumnConstraints minWidth="200" prefWidth="300"/>
+            </columnConstraints>
 
-        <Label text="q:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <TextField fx:id="qField" GridPane.columnIndex="1" GridPane.rowIndex="1"
+            <Label text="Параметры подписи:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                   style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+
+            <Label text="q:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="qField" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="11"/>
+
+            <Label text="p:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextField fx:id="pField" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="23"/>
+
+            <Label text="h:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <TextField fx:id="hField" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="2"/>
+
+            <Label text="x:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+            <TextField fx:id="xField" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="7"/>
+
+            <Label text="k:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+            <TextField fx:id="kField" GridPane.columnIndex="1" GridPane.rowIndex="5"
+                       style="-fx-pref-height: 30; -fx-font-size: 14;" text="5"/>
+        </GridPane>
+
+        <HBox spacing="30" alignment="CENTER" style="-fx-padding: 10;">
+            <Button fx:id="calculateBtn" text="Подписать" disable="true"
+                    style="-fx-pref-width: 150; -fx-pref-height: 40; -fx-font-size: 14;"/>
+            <Button fx:id="verifyBtn" text="Проверить" disable="true"
+                    style="-fx-pref-width: 150; -fx-pref-height: 40; -fx-font-size: 14;"/>
+        </HBox>
+    </VBox>
+
+    <!-- Правая часть - результаты и ввод/вывод -->
+    <VBox spacing="15" style="-fx-padding: 10;">
+        <GridPane hgap="15" vgap="15">
+            <columnConstraints>
+                <ColumnConstraints minWidth="100" prefWidth="150"/>
+                <ColumnConstraints minWidth="200" prefWidth="300"/>
+            </columnConstraints>
+
+            <Label text="Результаты:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                   style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+
+            <Label text="g:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="gField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                       style="-fx-pref-height: 30; -fx-font-size: 14;"/>
+
+            <Label text="y:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextField fx:id="yField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                       style="-fx-pref-height: 30; -fx-font-size: 14;"/>
+
+            <Label text="r:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <TextField fx:id="rField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                       style="-fx-pref-height: 30; -fx-font-size: 14;"/>
+
+            <Label text="s:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+            <TextField fx:id="sField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                       style="-fx-pref-height: 30; -fx-font-size: 14;"/>
+
+            <Label text="h(M):" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+            <TextField fx:id="hashField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5"
+                       style="-fx-pref-height: 30; -fx-font-size: 14;"/>
+
+            <Label text="Байты хеша:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+            <TextArea fx:id="hashBytesArea" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6"
+                      style="-fx-pref-height: 100; -fx-font-size: 12; -fx-font-family: monospace;"/>
+        </GridPane>
+
+        <Label text="Текстовый вывод:" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+        <TextArea fx:id="textField" style="-fx-pref-height: 150; -fx-font-size: 14;" editable="false"/>
+
+        <Label text="Прочитанная подпись:" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+        <TextField fx:id="fileSignature" editable="false"
                    style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-
-        <Label text="p:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-        <TextField fx:id="pField" GridPane.columnIndex="1" GridPane.rowIndex="2"
-                   style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-
-        <Label text="h:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <TextField fx:id="hField" GridPane.columnIndex="1" GridPane.rowIndex="3"
-                   style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-
-        <Label text="x:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-        <TextField fx:id="xField" GridPane.columnIndex="1" GridPane.rowIndex="4"
-                   style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-
-        <Label text="k:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-        <TextField fx:id="kField" GridPane.columnIndex="1" GridPane.rowIndex="5"
-                   style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-    </GridPane>
-
-    <HBox spacing="30" alignment="CENTER" style="-fx-padding: 10;">
-        <Button fx:id="calculateBtn" text="Подписать"
-                style="-fx-pref-width: 150; -fx-pref-height: 40; -fx-font-size: 14;"/>
-        <Button fx:id="verifyBtn" text="Проверить"
-                style="-fx-pref-width: 150; -fx-pref-height: 40; -fx-font-size: 14;"/>
-    </HBox>
-
-    <GridPane hgap="15" vgap="15" style="-fx-padding: 10;">
-        <columnConstraints>
-            <ColumnConstraints minWidth="100" prefWidth="150"/>
-            <ColumnConstraints minWidth="200" prefWidth="300"/>
-        </columnConstraints>
-
-        <Label text="Результаты:" GridPane.columnIndex="0" GridPane.rowIndex="0"
-               style="-fx-font-weight: bold; -fx-font-size: 14;"/>
-
-        <Label text="g:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <TextField fx:id="gField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                   style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-
-        <Label text="y:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-        <TextField fx:id="yField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2"
-                   style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-
-        <Label text="r:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <TextField fx:id="rField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3"
-                   style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-
-        <Label text="s:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-        <TextField fx:id="sField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4"
-                   style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-
-        <Label text="h(M):" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-        <TextField fx:id="hashField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5"
-                   style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-
-        <Label text="Дополнительно:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-        <TextField fx:id="extraField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6"
-                   style="-fx-pref-height: 30; -fx-font-size: 14;"/>
-    </GridPane>
-</VBox>
+    </VBox>
+</HBox>

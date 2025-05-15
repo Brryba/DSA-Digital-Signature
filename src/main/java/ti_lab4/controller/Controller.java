@@ -3,10 +3,15 @@ package ti_lab4.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
-import ti_lab4.dsa_digital_signature.DSACipher;
+import ti_lab4.dsa_digital_signature.DSASignatureMaker;
+import ti_lab4.dto.InputDto;
+import ti_lab4.utils.FileUtil;
 import ti_lab4.utils.InputValidator;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Controller {
     @FXML private TextField qField;
@@ -20,15 +25,20 @@ public class Controller {
     @FXML private TextField rField;
     @FXML private TextField sField;
     @FXML private TextField hashField;
-    @FXML private TextField extraField;
+    @FXML private TextField fileSignature;
+    @FXML private TextArea textField;
 
     @FXML private Button calculateBtn;
     @FXML private Button verifyBtn;
     @FXML private MenuItem openMenuItem;
     @FXML private MenuItem saveMenuItem;
 
-    private InputValidator validator = new InputValidator();
-    private DSACipher cipher = new DSACipher();
+    private final InputValidator validator = new InputValidator();
+    private final DSASignatureMaker dsaMaker = new DSASignatureMaker();
+    private final FileUtil fileUtil = new FileUtil();
+    private List<Byte> fileBytes = new ArrayList<>();
+    private int generatedSignature;
+    private int existingSignature;
 
     @FXML
     private void initialize() {
@@ -53,6 +63,10 @@ public class Controller {
 
         try {
             validator.validateAll(q, p, h, x, k);
+            int g = dsaMaker.countG(p, q, h);
+            gField.setText(String.valueOf(g));
+            int y = dsaMaker.countOpenKeyY(g, x, p);
+            yField.setText(String.valueOf(y));
         } catch (IllegalArgumentException e) {
             showError(e.getMessage());
             return;
@@ -64,9 +78,23 @@ public class Controller {
     }
 
     private void handleOpen() {
-        FileChooser fileChooser = new FileChooser();
-        File file = fileChooser.showOpenDialog(null);
-        // TODO: обработка открытия файла
+        InputDto inputDto;
+        try {
+            inputDto = fileUtil.readFile();
+        } catch (IOException e) {
+            showError(e.getMessage());
+            return;
+        }
+        this.fileBytes = inputDto.inputLetters();
+        fileSignature.setText(inputDto.fileSignature().isPresent()
+                ? String.valueOf(inputDto.fileSignature().get())
+                : "В файле не было подписи");
+        textField.setText(inputDto.input());
+        textField.appendText("\n" + fileBytes.stream()
+                .map(aByte -> (short) (aByte & 0xFF)).toList().toString());
+        verifyBtn.setDisable(inputDto.fileSignature().isEmpty());
+        calculateBtn.setDisable(false);
+        System.out.println(inputDto);
     }
 
     private void handleSave() {
