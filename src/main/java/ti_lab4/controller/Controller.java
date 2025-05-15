@@ -3,8 +3,11 @@ package ti_lab4.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import ti_lab4.dsa_digital_signature.DSASignatureMaker;
+import ti_lab4.dsa_digital_signature.DSASignatureValidator;
 import ti_lab4.dto.DsaParams;
-import ti_lab4.dto.InputDto;
+import ti_lab4.dto.DsaValidationResult;
+import ti_lab4.dto.FileInput;
+import ti_lab4.dto.SignatureResult;
 import ti_lab4.utils.FileUtil;
 import ti_lab4.utils.InputValidator;
 
@@ -54,6 +57,7 @@ public class Controller {
 
     private final InputValidator validator = new InputValidator();
     private final DSASignatureMaker dsaMaker = new DSASignatureMaker();
+    private final DSASignatureValidator dsaValidator = new DSASignatureValidator();
     private final FileUtil fileUtil = new FileUtil();
     private List<Byte> fileBytes = new ArrayList<>();
     private int fileS, fileR;
@@ -113,35 +117,18 @@ public class Controller {
     private void handleVerify() {
         try {
             DsaParams params = parseAndValidateInput(false);
-            int q = params.q(), p = params.p(), h = params.h(), x = params.x();
-
-            int g = dsaMaker.countG(p, q, h);
-            int y = dsaMaker.countOpenKeyY(g, x, p);
-
-            List<Integer> hashes = dsaMaker.countHash(fileBytes, q);
-            int hash = hashes.getLast();
-
-            int r = fileR;
-            int s = fileS;
-
-            int w = dsaMaker.fastModularExponentiation(s, q - 2, q);          // w = s^(-1) mod q
-            int u1 = (hash * w) % q;           // u1 = h(M) * w mod q
-            int u2 = (r * w) % q;              // u2 = r * w mod q
-            int v = (dsaMaker.fastModularExponentiation(g, u1, p)
-                    * dsaMaker.fastModularExponentiation(y, u2, p)
-                    % p) % q;  // v = (g^u1 * y^u2 mod p) mod q
-
+            DsaValidationResult validationParams = dsaValidator.validate(params, fileS, fileR, fileBytes);
 
             verificationResultArea.setText(
-                    "g = " + g + "  // g = h^((p-1)/q) mod p\n" +
-                            "y = " + y + "  // y = g^x mod p\n" +
-                            "hash = " + hash + "  // h(M)\n" +
-                            "w = " + w + "  // w = s^(-1) mod q\n" +
-                            "u1 = " + u1 + "  // u1 = hash * w mod q\n" +
-                            "u2 = " + u2 + "  // u2 = r * w mod q\n" +
-                            "v = " + v + "  // v = (g^u1 * y^u2 mod p) mod q\n" +
-                            "r из файла = " + r +
-                            "\nРезультат: " + (v == r ? "Подпись ВЕРНА" : "Подпись НЕВЕРНА")
+                    "g = " + validationParams.g() + "  // g = h^((p-1)/q) mod p\n" +
+                            "y = " + validationParams.y() + "  // y = g^x mod p\n" +
+                            "hash = " + validationParams.hash() + "  // h(M)\n" +
+                            "w = " + validationParams.w() + "  // w = s^(-1) mod q\n" +
+                            "u1 = " + validationParams.u1() + "  // u1 = hash * w mod q\n" +
+                            "u2 = " + validationParams.u2() + "  // u2 = r * w mod q\n" +
+                            "v = " + validationParams.v() + "  // v = (g^u1 * y^u2 mod p) mod q\n" +
+                            "r из файла = " + fileR +
+                            "\nРезультат: " + (validationParams.v() == fileR ? "Подпись ВЕРНА" : "Подпись НЕВЕРНА")
             );
 
         } catch (NumberFormatException e) {
@@ -151,8 +138,7 @@ public class Controller {
         }
     }
 
-    record SignatureResult(int g, int y, List<Integer> hashes, int r, int s) {
-    }
+
 
     private void updateUI(SignatureResult result) {
         gField.setText(String.valueOf(result.g()));
@@ -164,28 +150,28 @@ public class Controller {
     }
 
     private void handleOpen() {
-        InputDto inputDto;
+        FileInput fileInput;
         try {
-            inputDto = fileUtil.readFile();
-            if (inputDto == null) return;
+            fileInput = fileUtil.readFile();
+            if (fileInput == null) return;
         } catch (IOException e) {
             showError(e.getMessage());
             return;
         }
         clearFormOutputs();
-        this.fileBytes = inputDto.inputLetters();
-        fileSignature.setText(inputDto.fileSignature().isPresent()
-                ? String.valueOf(inputDto.fileSignature().get())
+        this.fileBytes = fileInput.inputLetters();
+        fileSignature.setText(fileInput.fileSignature().isPresent()
+                ? String.valueOf(fileInput.fileSignature().get())
                 : "В файле нет подписи или она была изменена и записана в неправильном формате");
-        textField.setText(inputDto.input());
+        textField.setText(fileInput.input());
         textField.appendText("\n" + fileBytes.stream()
                 .map(aByte -> (short) (aByte & 0xFF)).toList());
-        verifyBtn.setDisable(inputDto.fileSignature().isEmpty());
+        verifyBtn.setDisable(fileInput.fileSignature().isEmpty());
         calculateBtn.setDisable(false);
 
-        if (inputDto.fileSignature().isPresent()) {
-            fileR = inputDto.fileSignature().get().r();
-            fileS = inputDto.fileSignature().get().s();
+        if (fileInput.fileSignature().isPresent()) {
+            fileR = fileInput.fileSignature().get().r();
+            fileS = fileInput.fileSignature().get().s();
         }
     }
 

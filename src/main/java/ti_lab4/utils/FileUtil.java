@@ -1,8 +1,8 @@
 package ti_lab4.utils;
 
 import javafx.stage.FileChooser;
-import ti_lab4.dto.FileSignatureDto;
-import ti_lab4.dto.InputDto;
+import ti_lab4.dto.FileSignatureParams;
+import ti_lab4.dto.FileInput;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -13,7 +13,7 @@ import java.util.Optional;
 public class FileUtil {
     private final String SIGNATURE_LABEL = "\n{SIGNATURE}";
 
-    public InputDto readFile() throws IOException {
+    public FileInput readFile() throws IOException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open File");
         File file = fileChooser.showOpenDialog(null);
@@ -27,7 +27,7 @@ public class FileUtil {
 
             String input;
             List<Byte> dataBytes = new ArrayList<>();
-            Optional<FileSignatureDto> signature = Optional.empty();
+            Optional<FileSignatureParams> signature = Optional.empty();
 
             if (sigPos != -1) {
                 input = content.substring(0, sigPos);
@@ -46,16 +46,16 @@ public class FileUtil {
                 }
             }
 
-            return new InputDto(input, dataBytes, signature);
+            return new FileInput(input, dataBytes, signature);
         }
     }
 
-    private Optional<FileSignatureDto> parseSignature(String sigStr) {
+    private Optional<FileSignatureParams> parseSignature(String sigStr) {
         String[] parts = sigStr.split("\\s+");
         if (parts.length < 2) return Optional.empty();
 
         try {
-            return Optional.of(new FileSignatureDto(
+            return Optional.of(new FileSignatureParams(
                     Integer.parseInt(parts[0]),
                     Integer.parseInt(parts[1])
             ));
