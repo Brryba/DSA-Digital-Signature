@@ -56,7 +56,7 @@ public class Controller {
     private final DSASignatureMaker dsaMaker = new DSASignatureMaker();
     private final FileUtil fileUtil = new FileUtil();
     private List<Byte> fileBytes = new ArrayList<>();
-    private int fileS, fileR, r, s;
+    private int fileS, fileR;
 
     @FXML
     private void initialize() {
@@ -113,7 +113,7 @@ public class Controller {
     private void handleVerify() {
         try {
             DsaParams params = parseAndValidateInput(false);
-            int q = params.q(), p = params.p(), h = params.h(), x = params.x(), k = params.k();
+            int q = params.q(), p = params.p(), h = params.h(), x = params.x();
 
             int g = dsaMaker.countG(p, q, h);
             int y = dsaMaker.countOpenKeyY(g, x, p);
@@ -133,19 +133,19 @@ public class Controller {
 
 
             verificationResultArea.setText(
-                    "g = " + g +
-                            "\ny = " + y +
-                            "\nhash = " + hash +
-                            "\nw = " + w +
-                            "\nu1 = " + u1 +
-                            "\nu2 = " + u2 +
-                            "\nv = " + v +
-                            "\nr из файла = " + r + "\n"
+                    "g = " + g + "  // g = h^((p-1)/q) mod p\n" +
+                            "y = " + y + "  // y = g^x mod p\n" +
+                            "hash = " + hash + "  // h(M)\n" +
+                            "w = " + w + "  // w = s^(-1) mod q\n" +
+                            "u1 = " + u1 + "  // u1 = hash * w mod q\n" +
+                            "u2 = " + u2 + "  // u2 = r * w mod q\n" +
+                            "v = " + v + "  // v = (g^u1 * y^u2 mod p) mod q\n" +
+                            "r из файла = " + r +
+                            "\nРезультат: " + (v == r ? "Подпись ВЕРНА" : "Подпись НЕВЕРНА")
             );
-            verificationResultArea.appendText(v == r ? "Подпись ВЕРНА" : "Подпись НЕ ВЕРНА");
 
         } catch (NumberFormatException e) {
-            showError("Ошибка: все параметры должны быть целыми числами!");
+            showError("Все параметры должны быть целыми числами!");
         } catch (IllegalArgumentException e) {
             showError(e.getMessage());
         }
@@ -167,6 +167,7 @@ public class Controller {
         InputDto inputDto;
         try {
             inputDto = fileUtil.readFile();
+            if (inputDto == null) return;
         } catch (IOException e) {
             showError(e.getMessage());
             return;
@@ -178,7 +179,7 @@ public class Controller {
                 : "В файле нет подписи или она была изменена и записана в неправильном формате");
         textField.setText(inputDto.input());
         textField.appendText("\n" + fileBytes.stream()
-                .map(aByte -> (short) (aByte & 0xFF)).toList().toString());
+                .map(aByte -> (short) (aByte & 0xFF)).toList());
         verifyBtn.setDisable(inputDto.fileSignature().isEmpty());
         calculateBtn.setDisable(false);
 
@@ -210,7 +211,8 @@ public class Controller {
         hashField.setText("");
         rField.setText("");
         sField.setText("");
-        r = s = fileS = fileR = 0;
+        verificationResultArea.setText("");
+        fileS = fileR = 0;
         saveMenuItem.setDisable(true);
     }
 }

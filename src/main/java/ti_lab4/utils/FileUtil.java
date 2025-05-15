@@ -7,21 +7,16 @@ import ti_lab4.dto.InputDto;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class FileUtil {
-    private final String SIGNATURE_LABEL = "{SIGNATURE}";
+    private final String SIGNATURE_LABEL = "\n{SIGNATURE}";
 
     public InputDto readFile() throws IOException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open File");
-        File file = new File("D:\\bsuir\\Ти отчеты\\lab4\\test.txt");
-        //File file = fileChooser.showOpenDialog(null);
-        //TODO: ADD CHOOSER
+        File file = fileChooser.showOpenDialog(null);
         if (file == null) return null;
 
         try (InputStream is = new FileInputStream(file)) {
@@ -73,8 +68,7 @@ public class FileUtil {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save File");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
-        //File file = fileChooser.showSaveDialog(null);
-        File file = new File("D:\\bsuir\\Ти отчеты\\lab4\\out.txt"); // для тестирования
+        File file = fileChooser.showSaveDialog(null);
 
         if (file != null) {
             byte[] bytes = new byte[plainBytesArray.size()];
@@ -87,7 +81,6 @@ public class FileUtil {
             try (OutputStream os = new FileOutputStream(file);
                  Writer writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
                 writer.write(new String(bytes, StandardCharsets.UTF_8));
-                writer.write(System.lineSeparator());
                 writer.write(signatureLine);
             }
         }
